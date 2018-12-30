@@ -20,7 +20,7 @@
     "react-dom": "^16.7.0",
     "react-scripts": "2.1.1",
     "solc": "^0.5.2",
-    "solc-js": "file:../solc-js",
+    "solc-js": "git+https://github.com/stevemulligan/solc-js.git",
     "sync-request": "^6.0.0",
     "web3": "^1.0.0-beta.37"
   },
