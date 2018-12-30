@@ -46,5 +46,15 @@ Doing a production build
 Very sorry that everything is crammed into a single component.  I wanted to get this out with minimal effort.  It will be easy to clean up someday, but I only want to spend that time if people actually use this :)
 
 
+Important not for building:
 
+https://github.com/floatdrop/require-from-string/issues/18
+
+I assume it's related to the version of node that I am using (10.13)
+
+For now I just edit this file  ./node_modules/require-from-string/index.js
+
+And I change line 3 to be:
+
+`const Module = module.constructor;`
 
