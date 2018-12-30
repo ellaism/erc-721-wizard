@@ -9,10 +9,12 @@ import * as compileJSON from './templates/compile';
 import camelCase from 'camel-case';
 import capitalize from 'capitalize-first-letter';
 import CompilerVersion from './components/CompilerVersion';
-import {library} from '@fortawesome/fontawesome-svg-core'
-import {FontAwesomeIcon} from '@fortawesome/react-fontawesome'
-import {faCog} from '@fortawesome/free-solid-svg-icons'
-import * as wrapper from 'solc/wrapper'
+import {library} from '@fortawesome/fontawesome-svg-core';
+import {FontAwesomeIcon} from '@fortawesome/react-fontawesome';
+import {faCog} from '@fortawesome/free-solid-svg-icons';
+import {CopyToClipboard} from 'react-copy-to-clipboard';
+import * as wrapper from 'solc/wrapper';
+import $ from 'jquery';
 
 const solcjs = require('solc-js');
 library.add(faCog);
@@ -41,7 +43,10 @@ class App extends Component {
 		this.handleMinterRoleChanged = this.handleMinterRoleChanged.bind(this);
 		this.handleEstimateGas = this.handleEstimateGas.bind(this);
 		this.handleGasLimitChanged = this.handleGasLimitChanged.bind(this);
+		this.handleGasPriceChanged = this.handleGasPriceChanged.bind(this);
+		this.handleCloseModal = this.handleCloseModal.bind(this);
 		this.codeRef = React.createRef();
+		this.dialog = React.createRef();
 		this.changedTokenSymbol = false;
 		this.state = {generatedContract: '', gasLimit: '', gasPrice: 2, working: false, minterRole: true, web3ready: false, statusMessage: '', userTokenName: '', userTokenSymbol: '', tokenName: 'My Token', tokenSymbol: 'MT', preferredCompilerVersion: 'v0.4.24-stable-2018.05.16', compilerVersion: '', compilerLoader: null, compilerErrors: null};
 	}
@@ -55,7 +60,6 @@ class App extends Component {
 		this.setState({working: true, statusMessage: 'Checking for Web3 support in your browser. You might need to check MetaMask to see if it\'s asking for permissions.', web3ready: false}, function () {
 			self.initWeb3().then((result) => {
 				window.web3.eth.net.getId().then((id) => {
-
 					let currentNetwork = "an unknown network (ID: " + id + ").";
 					if (id === 64)
 					{
@@ -245,7 +249,8 @@ class App extends Component {
 		}).then(function(newContractInstance) {
 			let address = newContractInstance.options.address;
 			console.log(address);
-			self.setState({deployedAddress: address, statusMessage: 'Done! Contract address is ' + address, working: false});
+			self.setState({busy: false, deployedAddress: address, statusMessage: 'Done! Contract address is ' + address, working: false});
+			$(self.dialog.current).modal('show');
 		});
 	}
 
@@ -279,7 +284,7 @@ class App extends Component {
 
 	handleDeployContract() {
 		if (!this.compiler) {
-			this.setState({statusMessage: 'Loading compiler', working: true}, function () {
+			this.setState({statusMessage: 'Loading compiler', working: true, busy: true}, function () {
 				this.loadCompiler().then((compiler) => {
 					this.compiler = compiler;
 					this.compileAndDeploy();
@@ -308,10 +313,18 @@ class App extends Component {
 	{
 		this.setState({gasLimit: e.target.value});
 	}
+	handleGasPriceChanged(e)
+	{
+		this.setState({gasPrice: e.target.value});
+	}
 
 	handleMinterRoleChanged(e)
 	{
 		this.updateContract({minterRole: e.target.checked});
+	}
+
+	handleCloseModal() {
+		$(this.dialog.current).modal('hide');
 	}
 
 	render() {
@@ -327,20 +340,20 @@ class App extends Component {
 						<div className={"token-form"}>
 							<div className="form-group">
 								<label htmlFor="tokenName">Choose a name for your token</label>
-								<input type="text" placeholder={this.state.tokenName} onChange={this.handleTokenPropertyChanged} className="form-control" id="tokenName" aria-describedby="tokenHelp"/>
+								<input disabled={this.state.busy} type="text" placeholder={this.state.tokenName} onChange={this.handleTokenPropertyChanged} className="form-control" id="tokenName" aria-describedby="tokenHelp"/>
 								<small id="tokenHelp" className="form-text text-muted">The name will appear in wallets and exchanges. You may <strong>not</strong> change this later so <strong>make sure you are happy with what you enter!</strong></small>
 							</div>
 
 							<div className="form-group">
 								<label htmlFor="tokenSymbol">Choose a symbol</label>
-								<input type="text" placeholder={this.state.tokenSymbol} onChange={this.handleTokenPropertyChanged} className="form-control" id="tokenSymbol" aria-describedby="tokenSymbol"/>
+								<input disabled={this.state.busy} type="text" placeholder={this.state.tokenSymbol} onChange={this.handleTokenPropertyChanged} className="form-control" id="tokenSymbol" aria-describedby="tokenSymbol"/>
 								<small id="tokenSymbol" className="form-text text-muted">The symbol of the token, as it might appear on exchanges. You may <strong>not</strong> change this later so <strong>make sure you like the symbol!</strong></small>
 							</div>
 
 							<div className="form-group deploy-button">
 								<div className={"row"}>
 									<div className={"col"}>
-										<button disabled={!this.state.web3ready} onClick={this.handleDeployContract} type="button" className="btn btn-primary">Create Token</button>
+										<button disabled={!this.state.web3ready || this.state.busy} onClick={this.handleDeployContract} type="button" className="btn btn-primary">Create Token</button>
 									</div>
 								</div>
 								<div className={"row"}>
@@ -364,11 +377,18 @@ class App extends Component {
 						}
 
 						<div className="collapse" id="source-code">
+							{this.state.transactionHash && <div>Transaction hash from deploy: {this.state.transactionHash}</div>}
+							{this.state.deployedAddress && <div>Deployed contract address: {this.state.deployedAddress}</div>}
 							<CompilerVersion preferredCompilerVersion={this.state.preferredCompilerVersion} onCompilerLoaderChanged={this.handleCompilerLoaderChanged} onCompilerVersionChange={this.handleChangeCompilerVersion}/>
 							<div className="form-group">
 								<label htmlFor="gasLimit">Gas limit</label>
 								<input type="text" value={this.state.gasLimit} onChange={this.handleGasLimitChanged} className="form-control" id="gasLimit" aria-describedby="gasLimit"/>
 								<small id="gasLimitDesc" className="form-text text-muted">Maximum amount of gas to use when deploying. <a onClick={this.handleEstimateGas} href="#estimate">Estimate gas now</a> or leave this blank to perform estimate before deploying.</small>
+							</div>
+							<div className="form-group">
+								<label htmlFor="gasPrice">Gas price</label>
+								<input type="text" value={this.state.gasPrice} onChange={this.handleGasPriceChanged} className="form-control" id="gasPrice" aria-describedby="gasPrice"/>
+								<small id="gasPriceDesc" className="form-text text-muted">The amount of you to spend on the transaction in gwei. 1 Gwei = 0.000000001 ELLA. You can override this value in MetaMask.</small>
 							</div>
 							<div className="form-group form-check">
 								<input onChange={this.handleMinterRoleChanged} type="checkbox"  checked={this.state.minterRole} className="form-check-input" id="minter-role"/>
@@ -381,6 +401,29 @@ class App extends Component {
 						</div>
 
 					</form>
+				</div>
+
+				<div className="modal" tabIndex="-1" role="dialog" ref={this.dialog}>
+					<div className="modal-dialog" role="document">
+						<div className="modal-content">
+							<div className="modal-header">
+								<h5 className="modal-title"><strong>{this.state.tokenName}</strong></h5>
+								<button type="button" className="close" data-dismiss="modal" aria-label="Close">
+									<span aria-hidden="true">&times;</span>
+								</button>
+							</div>
+							<div className="modal-body">
+								<p>Your token was deployed.</p>
+								<p><strong>{this.state.deployedAddress}</strong></p>
+								<p>Save this address somewhere. You will need this address in order to mint the collectible items for your token.</p>
+							</div>
+							<div className="modal-footer">
+								<CopyToClipboard text={this.state.deployedAddress} onCopy={() => this.handleCloseModal()}>
+									<button type="button" className="btn btn-primary">Copy</button>
+								</CopyToClipboard>
+							</div>
+						</div>
+					</div>
 				</div>
 
 				<footer className="footer mt-auto py-3">

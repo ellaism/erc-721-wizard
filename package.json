@@ -16,6 +16,7 @@
     "mustache": "^3.0.1",
     "popper.js": "^1.14.6",
     "react": "^16.7.0",
+    "react-copy-to-clipboard": "^5.0.1",
     "react-dom": "^16.7.0",
     "react-scripts": "2.1.1",
     "solc": "^0.5.2",

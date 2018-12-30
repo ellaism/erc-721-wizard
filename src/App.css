@@ -7,6 +7,9 @@ code {
     vertical-align: baseline;
 }
 
+#source-code {
+    margin-top: 10px;
+}
 .App .show-source a {
     color: #007bff;
     cursor: pointer;
@@ -77,3 +80,6 @@ body {
     margin-right: 10px;
 }
 
+.modal-body small {
+    word-break: break-all;
+}
