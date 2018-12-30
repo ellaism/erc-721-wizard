@@ -1,0 +1,41 @@
+{
+  "name": "erc-721-wizard",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@fortawesome/fontawesome-svg-core": "^1.2.12",
+    "@fortawesome/free-solid-svg-icons": "^5.6.3",
+    "@fortawesome/react-fontawesome": "^0.1.3",
+    "axios": "^0.18.0",
+    "bootstrap": "^4.2.1",
+    "camel-case": "^3.0.0",
+    "capitalize-first-letter": "^1.0.0",
+    "highlight.js": "^9.13.1",
+    "highlightjs-solidity": "^1.0.6",
+    "jquery": "^3.3.1",
+    "mustache": "^3.0.1",
+    "popper.js": "^1.14.6",
+    "react": "^16.7.0",
+    "react-dom": "^16.7.0",
+    "react-scripts": "2.1.1",
+    "solc": "^0.5.2",
+    "solc-js": "file:../solc-js",
+    "sync-request": "^6.0.0",
+    "web3": "^1.0.0-beta.37"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
